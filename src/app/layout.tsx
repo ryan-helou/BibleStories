@@ -23,8 +23,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Night-sky backdrop: a slow aurora, a warm moon-glow + a scatter of stars */}
         <div className="aurora" aria-hidden="true" />
         <div className="sky" aria-hidden="true" />
-        <div className="mx-auto max-w-2xl px-5 py-8">{children}</div>
-        <footer className="mx-auto max-w-2xl px-5 pb-10 pt-4 text-center text-sm text-[var(--faint)]">
+        {/* Full-width shell; each page picks its own max width (landing goes
+            wide, reading pages stay a cozy max-w-2xl for comfortable line length). */}
+        <div className="px-5 py-8">{children}</div>
+        <footer className="mx-auto max-w-5xl px-5 pb-10 pt-4 text-center text-sm text-[var(--faint)]">
           <span aria-hidden="true">🌙</span> Bedtime Bible Stories — read aloud, tucked in, and loved.
         </footer>
       </body>
