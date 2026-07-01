@@ -31,21 +31,29 @@ export function StoryReader({
   const isFav = progress.favorites.includes(story.order)
 
   return (
-    <article>
-      <div className="mb-4 flex items-center justify-between text-sm">
-        <Link href="/library" className="text-[var(--accent)]">← Library</Link>
+    <article className="rise">
+      <div className="mb-5 flex items-center justify-between text-sm">
+        <Link href="/library" className="font-semibold text-[var(--accent)] hover:text-[var(--ink)]">
+          ← Library
+        </Link>
         <button
           type="button"
           onClick={() => toggleFavorite(story.order)}
           aria-pressed={isFav}
           aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
+          className={`btn text-sm ${isFav ? 'btn-soft' : 'btn-ghost'}`}
         >
           {isFav ? '★ Favorited' : '☆ Favorite'}
         </button>
       </div>
 
-      <h1 className="text-2xl font-bold">{story.title}</h1>
-      <p className="mb-4 text-[var(--muted)]">{story.sourcePassage}</p>
+      <header className="mb-6">
+        <span className="badge mb-2">{story.era}</span>
+        <h1 className="text-3xl font-semibold leading-tight">{story.title}</h1>
+        <p className="mt-1.5 text-[var(--muted)]">
+          <span aria-hidden="true">📖</span> {story.sourcePassage}
+        </p>
+      </header>
 
       <div className="mb-6">
         <AgeBandPicker value={ageBand} onChange={setAgeBand} />
@@ -53,16 +61,33 @@ export function StoryReader({
 
       <PronunciationHints hints={content.pronunciationHints} />
 
-      <div className="mb-5">
+      <div className="mb-6">
         <NarrationButton text={content.body} resetKey={`${story.order}-${ageBand}`} />
       </div>
 
-      <StoryBody body={content.body} />
+      <div className="card px-6 py-7 sm:px-7">
+        <div className="prose-story">
+          <StoryBody body={content.body} dropcap />
+        </div>
+      </div>
+
       <ReflectTogether content={content} />
 
-      <nav className="mt-10 flex justify-between text-[var(--accent)]">
-        {prevOrder != null ? <Link href={`/story/${prevOrder}`}>← Previous</Link> : <span />}
-        {nextOrder != null ? <Link href={`/story/${nextOrder}`}>Next →</Link> : <span />}
+      <nav className="mt-10 flex justify-between gap-3">
+        {prevOrder != null ? (
+          <Link href={`/story/${prevOrder}`} className="btn btn-ghost text-sm">
+            ← Previous
+          </Link>
+        ) : (
+          <span />
+        )}
+        {nextOrder != null ? (
+          <Link href={`/story/${nextOrder}`} className="btn btn-soft text-sm">
+            Next →
+          </Link>
+        ) : (
+          <span />
+        )}
       </nav>
     </article>
   )

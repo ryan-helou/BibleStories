@@ -12,11 +12,16 @@ export function EraSection({
 }) {
   if (stories.length === 0) return null
   return (
-    <section className="mb-8">
-      <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-[var(--accent-2)]">
-        <span aria-hidden="true" className="h-px flex-none w-4 bg-[var(--line)]" />
-        {era}
-      </h2>
+    <section className="mb-9">
+      <div className="mb-4 flex items-center gap-3">
+        <h2 className="flex-none text-base font-semibold uppercase tracking-[0.14em] text-[var(--accent-2)]">
+          {era}
+        </h2>
+        <span aria-hidden="true" className="h-px flex-1 bg-gradient-to-r from-[var(--line)] to-transparent" />
+        <span aria-hidden="true" className="flex-none text-xs text-[var(--faint)]">
+          {stories.length}
+        </span>
+      </div>
       <div className="flex flex-col gap-3">
         {stories.map((s) => (
           <StoryCard key={s.order} story={s} isRead={readSet.has(s.order)} />
