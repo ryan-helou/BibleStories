@@ -4,7 +4,7 @@ export const story: Story = {
   order: 3,
   era: 'Life of Jesus',
   title: 'The Birth of Jesus',
-  sourcePassage: 'Luke 2:1–20',
+  sourcePassage: 'Luke 1–2',
   teaser: 'A baby is born in Bethlehem, and angels tell shepherds the good news.',
   bands: {
     '3-5': {
