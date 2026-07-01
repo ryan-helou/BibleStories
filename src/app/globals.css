@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+
+:root {
+  --bg: #f6efe3;
+  --surface: #efe6d5;
+  --ink: #3a2f26;
+  --muted: #7a6a58;
+  --accent: #8a5a44;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1a17;
+    --surface: #262320;
+    --ink: #ece3d4;
+    --muted: #a89b88;
+    --accent: #c8926f;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  line-height: 1.8;
+}
