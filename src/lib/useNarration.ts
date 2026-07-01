@@ -75,19 +75,38 @@ export function splitIntoChunks(text: string): string[] {
  * Text is played back one short chunk at a time so long stories don't get cut
  * off mid-read, and so the pacing feels like a gentle bedtime read-aloud.
  */
+const VOICE_KEY = 'narration.voiceURI'
+const RATE_KEY = 'narration.rate'
+const DEFAULT_RATE = 0.9
+
 export function useNarration() {
   const [supported, setSupported] = useState(false)
   const [state, setState] = useState<NarrationState>('idle')
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
 
+  // Parent's saved preferences: which voice, and how fast.
+  const [voiceURI, setVoiceURIState] = useState<string>('')
+  const [rate, setRateState] = useState<number>(DEFAULT_RATE)
+
   // Playback session state, kept in refs so the chunk queue survives re-renders.
   const chunksRef = useRef<string[]>([])
   const idxRef = useRef(0)
   const tokenRef = useRef(0) // bumped to invalidate an in-flight queue on stop/replay
+  const rateRef = useRef(DEFAULT_RATE)
+  const voiceRef = useRef<SpeechSynthesisVoice | undefined>(undefined)
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
     setSupported(true)
+
+    try {
+      const savedVoice = localStorage.getItem(VOICE_KEY)
+      if (savedVoice) setVoiceURIState(savedVoice)
+      const savedRate = Number(localStorage.getItem(RATE_KEY))
+      if (savedRate >= 0.6 && savedRate <= 1.4) setRateState(savedRate)
+    } catch {
+      // localStorage may be unavailable (private mode); fall back to defaults.
+    }
 
     const load = () => setVoices(window.speechSynthesis.getVoices())
     load()
@@ -98,32 +117,62 @@ export function useNarration() {
     }
   }, [])
 
+  // English voices, nicest first — what the picker offers.
+  const enVoices = voices
+    .filter((v) => v.lang.toLowerCase().startsWith('en'))
+    .sort((a, b) => scoreVoice(b) - scoreVoice(a))
+
+  // Resolve the voice to actually use: the saved pick, else the best guess.
+  const resolvedVoice =
+    (voiceURI ? enVoices.find((v) => v.voiceURI === voiceURI) : undefined) ?? pickVoice(voices)
+
+  // Keep the refs the live chunk queue reads from in sync, so changing voice or
+  // speed mid-story takes effect on the next sentence.
+  rateRef.current = rate
+  voiceRef.current = resolvedVoice
+
+  const setVoiceURI = useCallback((uri: string) => {
+    setVoiceURIState(uri)
+    try {
+      localStorage.setItem(VOICE_KEY, uri)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const setRate = useCallback((r: number) => {
+    setRateState(r)
+    try {
+      localStorage.setItem(RATE_KEY, String(r))
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
   // Speak the next queued chunk, unless this session has been superseded.
-  const speakNext = useCallback(
-    (token: number, voice?: SpeechSynthesisVoice) => {
+  // Reads rate/voice from refs so a mid-story change lands on the next sentence.
+  const speakNext = useCallback((token: number) => {
+    if (token !== tokenRef.current) return
+    if (idxRef.current >= chunksRef.current.length) {
+      setState('idle')
+      return
+    }
+    const utter = new SpeechSynthesisUtterance(chunksRef.current[idxRef.current])
+    utter.rate = rateRef.current
+    utter.pitch = 1.02 // a hair warmer
+    if (voiceRef.current) utter.voice = voiceRef.current
+    utter.onend = () => {
+      if (token !== tokenRef.current) return // cancelled — don't advance
+      idxRef.current += 1
+      speakNext(token)
+    }
+    utter.onerror = () => {
       if (token !== tokenRef.current) return
-      if (idxRef.current >= chunksRef.current.length) {
-        setState('idle')
-        return
-      }
-      const utter = new SpeechSynthesisUtterance(chunksRef.current[idxRef.current])
-      utter.rate = 0.9 // a touch slower, for a calm read-aloud
-      utter.pitch = 1.02 // a hair warmer
-      if (voice) utter.voice = voice
-      utter.onend = () => {
-        if (token !== tokenRef.current) return // cancelled — don't advance
-        idxRef.current += 1
-        speakNext(token, voice)
-      }
-      utter.onerror = () => {
-        if (token !== tokenRef.current) return
-        idxRef.current += 1
-        speakNext(token, voice)
-      }
-      window.speechSynthesis.speak(utter)
-    },
-    [],
-  )
+      idxRef.current += 1
+      speakNext(token)
+    }
+    window.speechSynthesis.speak(utter)
+  }, [])
 
   const play = useCallback(
     (text: string) => {
@@ -132,15 +181,14 @@ export function useNarration() {
 
       const chunks = splitIntoChunks(text)
       if (chunks.length === 0) return
-      const voice = pickVoice(voices.length ? voices : window.speechSynthesis.getVoices())
 
       chunksRef.current = chunks
       idxRef.current = 0
       tokenRef.current += 1
       setState('playing')
-      speakNext(tokenRef.current, voice)
+      speakNext(tokenRef.current)
     },
-    [voices, speakNext],
+    [speakNext],
   )
 
   const pause = useCallback(() => {
@@ -162,5 +210,18 @@ export function useNarration() {
     setState('idle')
   }, [])
 
-  return { supported, state, play, pause, resume, stop }
+  return {
+    supported,
+    state,
+    play,
+    pause,
+    resume,
+    stop,
+    // Voice + speed preferences for the picker.
+    voices: enVoices,
+    voiceURI: resolvedVoice?.voiceURI ?? '',
+    setVoiceURI,
+    rate,
+    setRate,
+  }
 }

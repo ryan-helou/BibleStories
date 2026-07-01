@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Story } from '@/content/schema'
+import { StarIcon } from '@/components/icons'
 
 export function StoryCard({ story, isRead }: { story: Story; isRead: boolean }) {
   return (
@@ -21,11 +22,11 @@ export function StoryCard({ story, isRead }: { story: Story; isRead: boolean }) 
           <div className="flex items-center justify-between gap-3">
             <span className="font-semibold">{story.title}</span>
             <span
-              className={`flex-none ${isRead ? 'text-[var(--accent)]' : 'text-[var(--line)]'}`}
+              className={`flex-none ${isRead ? 'text-[var(--accent)]' : 'text-[var(--faint)]'}`}
               aria-label={isRead ? 'Read' : 'Not read yet'}
               title={isRead ? 'Read' : 'Not read yet'}
             >
-              {isRead ? '⭐' : '☆'}
+              <StarIcon size={16} filled={isRead} />
             </span>
           </div>
           <span className="mt-0.5 block text-sm text-[var(--faint)]">{story.sourcePassage}</span>

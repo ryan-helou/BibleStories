@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react'
 import { StoryBody } from '@/components/StoryBody'
 import { NarrationButton } from '@/components/NarrationButton'
+import { MoonIcon, StarIcon } from '@/components/icons'
 import {
   CustomStoryRequestSchema,
   bandVoice,
@@ -131,9 +132,7 @@ export function StoryMaker() {
               className="field w-24 text-center text-lg font-semibold"
             />
             {bandLabel && (
-              <span className="badge">
-                <span aria-hidden="true">🧒</span> We&apos;ll write it for {bandLabel}
-              </span>
+              <span className="badge">We&apos;ll write it for {bandLabel}</span>
             )}
           </div>
         </div>
@@ -170,17 +169,8 @@ export function StoryMaker() {
         </div>
 
         <div className="flex items-center gap-4 pt-1">
-          <button type="submit" disabled={loading} className="btn btn-primary btn-lg lantern">
-            {loading ? (
-              <>
-                <span className="caret" aria-hidden="true">
-                  ✦
-                </span>{' '}
-                Writing your story…
-              </>
-            ) : (
-              '✨ Create story'
-            )}
+          <button type="submit" disabled={loading} className="btn btn-primary btn-lg">
+            {loading ? 'Writing your story…' : 'Create story'}
           </button>
           {loading && (
             <button type="button" onClick={handleStop} className="btn btn-ghost">
@@ -190,14 +180,7 @@ export function StoryMaker() {
         </div>
       </form>
 
-      {error && (
-        <p className="callout mt-6 text-[var(--accent-2)]">
-          <span aria-hidden="true" className="mr-1.5">
-            ⚠️
-          </span>
-          {error}
-        </p>
-      )}
+      {error && <p className="callout mt-6 text-[var(--accent-2)]">{error}</p>}
 
       {(story || loading) && (
         <StoryResult
@@ -252,17 +235,12 @@ function StoryResult({
 
         {!loading && takeaways.length > 0 && (
           <section className="mt-8 border-t border-[var(--line-soft)] pt-6">
-            <h3 className="mb-3 flex items-center gap-2 font-semibold text-[var(--accent)]">
-              <span aria-hidden="true">✨</span> Things to remember
-            </h3>
+            <h3 className="mb-3 font-semibold text-[var(--accent)]">Things to remember</h3>
             <ul className="space-y-2.5">
               {takeaways.map((t, i) => (
                 <li key={i} className="flex gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="mt-0.5 grid h-5 w-5 flex-none place-items-center rounded-full bg-[var(--accent)]/15 text-xs text-[var(--accent)]"
-                  >
-                    ★
+                  <span className="mt-0.5 flex-none text-[var(--accent)]" aria-hidden="true">
+                    <StarIcon size={16} filled />
                   </span>
                   <span>{t}</span>
                 </li>
@@ -273,9 +251,7 @@ function StoryResult({
 
         {!loading && (verseLoading || verse) && (
           <section className="callout mt-7">
-            <p className="text-sm font-semibold text-[var(--accent-2)]">
-              <span aria-hidden="true">📖</span> A verse for tonight
-            </p>
+            <span className="eyebrow">A verse for tonight</span>
             {verse ? (
               <>
                 <p className="prose-story mt-2 text-xl italic leading-relaxed">
@@ -283,24 +259,19 @@ function StoryResult({
                 </p>
                 {verse.reference && (
                   <p className="mt-1.5 text-sm font-semibold text-[var(--muted)]">
-                    — {verse.reference}
+                    {verse.reference}
                   </p>
                 )}
               </>
             ) : (
-              <p className="mt-2 flex items-center gap-2 text-sm text-[var(--muted)]">
-                <span className="caret" aria-hidden="true">
-                  ✦
-                </span>
-                Finding a verse from the passage…
-              </p>
+              <p className="mt-2 text-sm text-[var(--muted)]">Finding a verse from the passage…</p>
             )}
           </section>
         )}
 
         {!loading && text && (
           <div className="hr-star mt-8 text-sm">
-            <span aria-hidden="true">🌙</span> The end. Sweet dreams.
+            <MoonIcon size={15} /> The end. Sweet dreams.
           </div>
         )}
       </div>

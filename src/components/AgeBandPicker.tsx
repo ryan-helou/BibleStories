@@ -2,12 +2,6 @@
 import { AGE_BANDS } from '@/content/ageBands'
 import type { AgeBand } from '@/content/schema'
 
-const BAND_ICON: Record<AgeBand, string> = {
-  '3-5': '🧸',
-  '6-8': '🪁',
-  '9-12': '📚',
-}
-
 export function AgeBandPicker({
   value,
   onChange,
@@ -29,10 +23,7 @@ export function AgeBandPicker({
           onClick={() => onChange(b.key)}
           className="opt px-4 py-3 text-left"
         >
-          <span className="flex items-center gap-2 font-semibold">
-            <span aria-hidden="true">{BAND_ICON[b.key]}</span>
-            {b.label}
-          </span>
+          <span className="block font-semibold">{b.label}</span>
           <span className="mt-1 block text-sm font-normal text-[var(--muted)]">{b.blurb}</span>
         </button>
       ))}
