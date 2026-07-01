@@ -6,6 +6,7 @@ import { StoryBody } from '@/components/StoryBody'
 import { PronunciationHints } from '@/components/PronunciationHints'
 import { ReflectTogether } from '@/components/ReflectTogether'
 import { AgeBandPicker } from '@/components/AgeBandPicker'
+import { NarrationButton } from '@/components/NarrationButton'
 import { useAgeBand } from '@/lib/useAgeBand'
 import { useProgress } from '@/lib/useProgress'
 
@@ -32,7 +33,7 @@ export function StoryReader({
   return (
     <article>
       <div className="mb-4 flex items-center justify-between text-sm">
-        <Link href="/" className="text-[var(--accent)]">← All stories</Link>
+        <Link href="/library" className="text-[var(--accent)]">← Library</Link>
         <button
           type="button"
           onClick={() => toggleFavorite(story.order)}
@@ -51,6 +52,11 @@ export function StoryReader({
       </div>
 
       <PronunciationHints hints={content.pronunciationHints} />
+
+      <div className="mb-5">
+        <NarrationButton text={content.body} resetKey={`${story.order}-${ageBand}`} />
+      </div>
+
       <StoryBody body={content.body} />
       <ReflectTogether content={content} />
 
