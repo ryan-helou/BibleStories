@@ -17,12 +17,14 @@ export function AgeBandPicker({
           type="button"
           aria-pressed={value === b.key}
           onClick={() => onChange(b.key)}
-          className={`rounded-xl border px-4 py-3 text-left transition ${
-            value === b.key ? 'border-[var(--accent)] bg-[var(--surface)]' : 'border-transparent'
+          className={`lamplight flex-1 rounded-2xl border px-4 py-3 text-left ${
+            value === b.key
+              ? 'border-[var(--accent)] bg-[var(--surface-2)] shadow-[0_0_0_1px_rgba(255,210,122,0.4)]'
+              : 'border-[var(--line)] bg-[var(--surface)]'
           }`}
         >
           <span className="block font-semibold">{b.label}</span>
-          <span className="block text-sm text-[var(--muted)]">{b.blurb}</span>
+          <span className="mt-0.5 block text-sm text-[var(--muted)]">{b.blurb}</span>
         </button>
       ))}
     </div>
