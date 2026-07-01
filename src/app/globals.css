@@ -442,16 +442,16 @@ h3 {
   font-optical-sizing: auto;
 }
 
-/* A gentle illuminated first letter to open a story. */
+/* A gentle illuminated first letter to open a story. Uses the serif so the
+   letter keeps its serifs (a Fredoka "I" reads as a bare bar, not a letter). */
 .dropcap::first-letter {
   float: left;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-story), Georgia, serif;
   font-weight: 600;
-  font-size: 3.1rem;
-  line-height: 0.82;
-  padding: 0.28rem 0.6rem 0 0;
+  font-size: 3rem;
+  line-height: 0.9;
+  padding: 0.3rem 0.55rem 0 0.05rem;
   color: var(--accent);
-  text-shadow: 0 6px 18px rgba(255, 210, 122, 0.35);
 }
 
 /* Decorative section divider with a centered star. */
