@@ -7,6 +7,7 @@ import {
   bandVoice,
   categorizeAge,
   parseGeneratedStory,
+  type Verse,
 } from '@/lib/customStory'
 
 const LENGTH_OPTIONS = [1, 2, 3, 5, 8, 12] as const
@@ -21,7 +22,27 @@ export function StoryMaker() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [genId, setGenId] = useState(0)
+  const [verse, setVerse] = useState<Verse | null>(null)
+  const [verseLoading, setVerseLoading] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
+
+  // After the story finishes, Sonnet supplies an accurate passage verse.
+  async function fetchVerse(description: string, storyText: string) {
+    setVerse(null)
+    setVerseLoading(true)
+    try {
+      const res = await fetch('/api/verse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description, story: storyText }),
+      })
+      if (res.ok) setVerse(await res.json())
+    } catch {
+      // A missing verse shouldn't break the story; just show none.
+    } finally {
+      setVerseLoading(false)
+    }
+  }
 
   const ageNum = Number(age)
   const bandLabel =
@@ -43,6 +64,8 @@ export function StoryMaker() {
     }
 
     setStory('')
+    setVerse(null)
+    setVerseLoading(false)
     setGenId((n) => n + 1)
     setLoading(true)
     const controller = new AbortController()
@@ -64,11 +87,18 @@ export function StoryMaker() {
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
+      let acc = ''
       for (;;) {
         const { done, value } = await reader.read()
         if (done) break
-        setStory((prev) => prev + decoder.decode(value, { stream: true }))
+        const chunk = decoder.decode(value, { stream: true })
+        acc += chunk
+        setStory((prev) => prev + chunk)
       }
+
+      // Story is complete — now get an accurate verse from Sonnet.
+      const finalStory = parseGeneratedStory(acc).story
+      void fetchVerse(parsed.data.description, finalStory)
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         setError((err as Error).message)
@@ -164,7 +194,13 @@ export function StoryMaker() {
       )}
 
       {(story || loading) && (
-        <StoryResult story={story} loading={loading} genId={genId} />
+        <StoryResult
+          story={story}
+          loading={loading}
+          genId={genId}
+          verse={verse}
+          verseLoading={verseLoading}
+        />
       )}
     </div>
   )
@@ -174,12 +210,16 @@ function StoryResult({
   story,
   loading,
   genId,
+  verse,
+  verseLoading,
 }: {
   story: string
   loading: boolean
   genId: number
+  verse: Verse | null
+  verseLoading: boolean
 }) {
-  const { story: text, takeaways, verse } = parseGeneratedStory(story)
+  const { story: text, takeaways } = parseGeneratedStory(story)
   const narrationText = verse ? `${text}\n\n${verse.text}` : text
 
   return (
@@ -217,12 +257,18 @@ function StoryResult({
         </section>
       )}
 
-      {!loading && verse && (
+      {!loading && (verseLoading || verse) && (
         <section className="mt-6 rounded-2xl border-l-4 border-[var(--accent)] bg-[var(--surface-2)] px-4 py-4">
           <p className="text-sm font-semibold text-[var(--accent-2)]">📖 A verse for tonight</p>
-          <p className="mt-1.5 text-lg italic leading-relaxed">&ldquo;{verse.text}&rdquo;</p>
-          {verse.reference && (
-            <p className="mt-1 text-sm text-[var(--muted)]">— {verse.reference}</p>
+          {verse ? (
+            <>
+              <p className="mt-1.5 text-lg italic leading-relaxed">&ldquo;{verse.text}&rdquo;</p>
+              {verse.reference && (
+                <p className="mt-1 text-sm text-[var(--muted)]">— {verse.reference}</p>
+              )}
+            </>
+          ) : (
+            <p className="mt-1.5 text-sm text-[var(--muted)]">Finding a verse from the passage…</p>
           )}
         </section>
       )}

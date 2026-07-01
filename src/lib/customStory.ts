@@ -92,7 +92,7 @@ function stripTrailingMarker(s: string): string {
   return s.replace(/\n*=+[A-Za-z]*\s*$/, '')
 }
 
-function parseVerse(block: string): Verse {
+export function parseVerse(block: string): Verse {
   // Expected: "verse text" — Book 1:1 (tolerate curly quotes and en/em dashes).
   const quoted = block.match(/^["“]([\s\S]+?)["”]\s*[—–-]\s*([\s\S]+?)\s*$/)
   if (quoted) return { text: quoted[1].trim(), reference: quoted[2].trim() }

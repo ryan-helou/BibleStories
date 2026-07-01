@@ -6,7 +6,7 @@ import {
   WORDS_PER_MINUTE,
   parseGeneratedStory,
 } from '@/lib/customStory'
-import { buildUserPrompt } from '@/lib/storyPrompt'
+import { buildUserPrompt, buildVersePrompt } from '@/lib/storyPrompt'
 
 describe('categorizeAge', () => {
   it('maps young ages to 3-5', () => {
@@ -53,10 +53,18 @@ describe('buildUserPrompt', () => {
     expect(prompt).toContain('2 minute')
     expect(prompt).toContain(String(minutesToWordTarget(2)))
   })
-  it('asks for the takeaways and verse trailer', () => {
+  it('asks for the takeaways trailer (verse is a separate Sonnet call)', () => {
     const prompt = buildUserPrompt({ age: 8, description: 'David and Goliath', minutes: 3 })
     expect(prompt).toContain('===TAKEAWAYS===')
-    expect(prompt).toContain('===VERSE===')
+    expect(prompt).not.toContain('===VERSE===')
+  })
+})
+
+describe('buildVersePrompt', () => {
+  it('includes the description and the required verse format', () => {
+    const prompt = buildVersePrompt('David and Goliath', 'David trusted God and won.')
+    expect(prompt).toContain('David and Goliath')
+    expect(prompt).toContain('David trusted God and won.')
   })
 })
 
