@@ -5,9 +5,6 @@ export function PronunciationHints({ hints }: { hints: PronunciationHint[] }) {
   return (
     <details className="card mb-6 px-4 py-3 text-sm text-[var(--muted)]">
       <summary className="cursor-pointer select-none font-semibold text-[var(--ink)]">
-        <span aria-hidden="true" className="mr-1.5">
-          🗣️
-        </span>
         How do I say the names?
       </summary>
       <ul className="mt-3 space-y-1.5">

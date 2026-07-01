@@ -17,7 +17,7 @@ export default function CreatePage() {
             Just for tonight
           </span>
           <h1 className="text-2xl font-semibold drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
-            Make a story <span className="gradient-text">just for tonight</span>
+            Make a story <span className="text-[var(--accent)]">just for tonight</span>
           </h1>
           <p className="mt-1 text-sm text-[var(--ink)]/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
             The age, the story, the length — we&apos;ll write it as you watch.

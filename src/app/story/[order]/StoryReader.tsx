@@ -7,6 +7,7 @@ import { PronunciationHints } from '@/components/PronunciationHints'
 import { ReflectTogether } from '@/components/ReflectTogether'
 import { AgeBandPicker } from '@/components/AgeBandPicker'
 import { NarrationButton } from '@/components/NarrationButton'
+import { BookIcon, StarIcon } from '@/components/icons'
 import { useAgeBand } from '@/lib/useAgeBand'
 import { useProgress } from '@/lib/useProgress'
 
@@ -43,15 +44,15 @@ export function StoryReader({
           aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
           className={`btn text-sm ${isFav ? 'btn-soft' : 'btn-ghost'}`}
         >
-          {isFav ? '★ Favorited' : '☆ Favorite'}
+          <StarIcon size={15} filled={isFav} /> {isFav ? 'Favorited' : 'Favorite'}
         </button>
       </div>
 
       <header className="mb-6">
         <span className="badge mb-2">{story.era}</span>
         <h1 className="text-3xl font-semibold leading-tight">{story.title}</h1>
-        <p className="mt-1.5 text-[var(--muted)]">
-          <span aria-hidden="true">📖</span> {story.sourcePassage}
+        <p className="mt-1.5 flex items-center gap-1.5 text-[var(--muted)]">
+          <BookIcon size={16} /> {story.sourcePassage}
         </p>
       </header>
 

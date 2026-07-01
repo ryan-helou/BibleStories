@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { MoonIcon } from '@/components/icons'
 
 export const metadata: Metadata = {
   title: 'Bedtime Bible Stories',
@@ -26,8 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Full-width shell; each page picks its own max width (landing goes
             wide, reading pages stay a cozy max-w-2xl for comfortable line length). */}
         <div className="px-5 py-8">{children}</div>
-        <footer className="mx-auto max-w-5xl px-5 pb-10 pt-4 text-center text-sm text-[var(--faint)]">
-          <span aria-hidden="true">🌙</span> Bedtime Bible Stories — read aloud, tucked in, and loved.
+        <footer className="mx-auto flex max-w-5xl items-center justify-center gap-2 px-5 pb-10 pt-4 text-center text-sm text-[var(--faint)]">
+          <MoonIcon size={14} /> Bedtime Bible Stories — read aloud, tucked in, and loved.
         </footer>
       </body>
     </html>

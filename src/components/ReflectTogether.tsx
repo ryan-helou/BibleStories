@@ -1,11 +1,10 @@
 import type { AgeBandContent } from '@/content/schema'
+import { BookIcon, StarIcon } from '@/components/icons'
 
 export function ReflectTogether({ content }: { content: AgeBandContent }) {
   return (
     <section className="card mt-10 px-6 py-6 text-base sm:px-7">
-      <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold text-[var(--accent)]">
-        <span aria-hidden="true">💬</span> Reflect together
-      </h2>
+      <h2 className="mb-5 text-lg font-semibold text-[var(--accent)]">Reflect together</h2>
 
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--accent-2)]">
         Themes
@@ -27,8 +26,8 @@ export function ReflectTogether({ content }: { content: AgeBandContent }) {
       <ul className="mb-5 space-y-1.5">
         {content.takeaways.map((t) => (
           <li key={t} className="flex gap-2.5">
-            <span aria-hidden="true" className="text-[var(--accent)]">
-              ★
+            <span aria-hidden="true" className="mt-1 flex-none text-[var(--accent)]">
+              <StarIcon size={14} filled />
             </span>
             <span>{t}</span>
           </li>
@@ -52,8 +51,8 @@ export function ReflectTogether({ content }: { content: AgeBandContent }) {
           <ul className="space-y-1.5">
             {content.crossReferences.map((c) => (
               <li key={c.reference} className="flex gap-2.5">
-                <span aria-hidden="true" className="text-[var(--accent)]">
-                  📖
+                <span aria-hidden="true" className="mt-1 flex-none text-[var(--accent)]">
+                  <BookIcon size={14} />
                 </span>
                 <span>
                   <strong className="text-[var(--ink)]">{c.reference}</strong> — {c.note}
