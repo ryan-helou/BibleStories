@@ -16,16 +16,11 @@ export function NarrationButton({ text, resetKey }: { text: string; resetKey?: s
 
   if (!supported) return null
 
-  const base =
-    'lamplight inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold'
+  const base = 'btn text-sm'
 
   if (state === 'idle') {
     return (
-      <button
-        type="button"
-        onClick={() => play(text)}
-        className={`${base} border-[var(--accent)] bg-[var(--surface-2)] text-[var(--accent)]`}
-      >
+      <button type="button" onClick={() => play(text)} className={`${base} btn-soft`}>
         🔊 Read it to me
       </button>
     )
@@ -34,27 +29,15 @@ export function NarrationButton({ text, resetKey }: { text: string; resetKey?: s
   return (
     <div className="inline-flex items-center gap-2">
       {state === 'playing' ? (
-        <button
-          type="button"
-          onClick={pause}
-          className={`${base} border-[var(--accent)] bg-[var(--surface-2)] text-[var(--accent)]`}
-        >
+        <button type="button" onClick={pause} className={`${base} btn-soft`}>
           ⏸ Pause
         </button>
       ) : (
-        <button
-          type="button"
-          onClick={resume}
-          className={`${base} border-[var(--accent)] bg-[var(--surface-2)] text-[var(--accent)]`}
-        >
+        <button type="button" onClick={resume} className={`${base} btn-soft`}>
           ▶ Resume
         </button>
       )}
-      <button
-        type="button"
-        onClick={stop}
-        className={`${base} border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]`}
-      >
+      <button type="button" onClick={stop} className={`${base} btn-ghost`}>
         ⏹ Stop
       </button>
     </div>

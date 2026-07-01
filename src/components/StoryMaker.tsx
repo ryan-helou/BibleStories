@@ -115,29 +115,31 @@ export function StoryMaker() {
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="card-glass space-y-6 p-6 sm:p-7">
         <div>
-          <label htmlFor="age" className="mb-1 block text-sm font-semibold">
+          <label htmlFor="age" className="mb-2 block text-sm font-semibold">
             Child&apos;s age
           </label>
-          <input
-            id="age"
-            type="number"
-            min={1}
-            max={17}
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            className="w-28 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-[var(--ink)]"
-          />
-          {bandLabel && (
-            <span className="ml-3 text-sm text-[var(--muted)]">
-              We&apos;ll write it for {bandLabel}.
-            </span>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              id="age"
+              type="number"
+              min={1}
+              max={17}
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              className="field w-24 text-center text-lg font-semibold"
+            />
+            {bandLabel && (
+              <span className="badge">
+                <span aria-hidden="true">🧒</span> We&apos;ll write it for {bandLabel}
+              </span>
+            )}
+          </div>
         </div>
 
         <div>
-          <label htmlFor="description" className="mb-1 block text-sm font-semibold">
+          <label htmlFor="description" className="mb-2 block text-sm font-semibold">
             What story would you like?
           </label>
           <textarea
@@ -146,7 +148,7 @@ export function StoryMaker() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. The story of Daniel — focus on his faith through temptation and his resilience."
-            className="w-full rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-[var(--ink)] placeholder:text-[var(--muted)]"
+            className="field resize-none"
           />
         </div>
 
@@ -159,11 +161,7 @@ export function StoryMaker() {
                 type="button"
                 aria-pressed={minutes === m}
                 onClick={() => setMinutes(m)}
-                className={`lamplight rounded-2xl border px-4 py-2 font-semibold ${
-                  minutes === m
-                    ? 'border-[var(--accent)] bg-[var(--surface-2)] text-[var(--accent)] shadow-[0_0_0_1px_rgba(255,210,122,0.4)]'
-                    : 'border-[var(--line)] bg-[var(--surface)]'
-                }`}
+                className="opt px-4 py-2"
               >
                 {m} min
               </button>
@@ -171,16 +169,21 @@ export function StoryMaker() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="lamplight rounded-2xl border border-[var(--accent)] bg-[var(--surface-2)] px-5 py-3 text-lg font-semibold text-[var(--accent)] disabled:opacity-50"
-          >
-            {loading ? 'Writing your story…' : '✨ Create story'}
+        <div className="flex items-center gap-4 pt-1">
+          <button type="submit" disabled={loading} className="btn btn-primary btn-lg lantern">
+            {loading ? (
+              <>
+                <span className="caret" aria-hidden="true">
+                  ✦
+                </span>{' '}
+                Writing your story…
+              </>
+            ) : (
+              '✨ Create story'
+            )}
           </button>
           {loading && (
-            <button type="button" onClick={handleStop} className="text-sm text-[var(--muted)]">
+            <button type="button" onClick={handleStop} className="btn btn-ghost">
               Stop
             </button>
           )}
@@ -188,7 +191,10 @@ export function StoryMaker() {
       </form>
 
       {error && (
-        <p className="mt-6 rounded-2xl border border-[var(--accent-2)] bg-[var(--surface)] px-4 py-3 text-[var(--accent-2)]">
+        <p className="callout mt-6 text-[var(--accent-2)]">
+          <span aria-hidden="true" className="mr-1.5">
+            ⚠️
+          </span>
           {error}
         </p>
       )}
@@ -225,59 +231,79 @@ function StoryResult({
   return (
     <article
       aria-live="polite"
-      className="mt-6 rounded-3xl border border-[var(--line)] bg-[var(--surface)] px-6 py-6 shadow-[0_16px_50px_-20px_rgba(255,210,122,0.4)]"
+      className="card rise mt-6 overflow-hidden"
     >
-      {!loading && text && (
-        <div className="mb-4 flex justify-end">
-          <NarrationButton text={narrationText} resetKey={String(genId)} />
+      {/* A slim lit header bar makes the result feel like an opened storybook. */}
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--line-soft)] bg-[var(--surface-2)]/40 px-6 py-3">
+        <span className="eyebrow">Tonight&apos;s story</span>
+        {!loading && text && <NarrationButton text={narrationText} resetKey={String(genId)} />}
+      </div>
+
+      <div className="px-6 py-6 sm:px-7">
+        {loading && !text && <p className="italic text-[var(--muted)]">Once upon a time…</p>}
+        <div className="prose-story">
+          <StoryBody body={text} dropcap={!loading || text.length > 40} />
         </div>
-      )}
+        {loading && text && (
+          <span className="caret text-[var(--accent)]" aria-hidden="true">
+            ▍
+          </span>
+        )}
 
-      {loading && !text && <p className="text-[var(--muted)]">Once upon a time…</p>}
-      <StoryBody body={text} />
-      {loading && text && (
-        <span className="text-[var(--accent)]" aria-hidden="true">
-          ▍
-        </span>
-      )}
+        {!loading && takeaways.length > 0 && (
+          <section className="mt-8 border-t border-[var(--line-soft)] pt-6">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-[var(--accent)]">
+              <span aria-hidden="true">✨</span> Things to remember
+            </h3>
+            <ul className="space-y-2.5">
+              {takeaways.map((t, i) => (
+                <li key={i} className="flex gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-0.5 grid h-5 w-5 flex-none place-items-center rounded-full bg-[var(--accent)]/15 text-xs text-[var(--accent)]"
+                  >
+                    ★
+                  </span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-      {!loading && takeaways.length > 0 && (
-        <section className="mt-8 border-t border-[var(--line)] pt-5">
-          <h3 className="mb-3 font-semibold text-[var(--accent)]">✨ Things to remember</h3>
-          <ul className="space-y-2">
-            {takeaways.map((t, i) => (
-              <li key={i} className="flex gap-2.5">
-                <span aria-hidden="true" className="text-[var(--accent)]">
-                  ★
+        {!loading && (verseLoading || verse) && (
+          <section className="callout mt-7">
+            <p className="text-sm font-semibold text-[var(--accent-2)]">
+              <span aria-hidden="true">📖</span> A verse for tonight
+            </p>
+            {verse ? (
+              <>
+                <p className="prose-story mt-2 text-xl italic leading-relaxed">
+                  &ldquo;{verse.text}&rdquo;
+                </p>
+                {verse.reference && (
+                  <p className="mt-1.5 text-sm font-semibold text-[var(--muted)]">
+                    — {verse.reference}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="mt-2 flex items-center gap-2 text-sm text-[var(--muted)]">
+                <span className="caret" aria-hidden="true">
+                  ✦
                 </span>
-                <span>{t}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+                Finding a verse from the passage…
+              </p>
+            )}
+          </section>
+        )}
 
-      {!loading && (verseLoading || verse) && (
-        <section className="mt-6 rounded-2xl border-l-4 border-[var(--accent)] bg-[var(--surface-2)] px-4 py-4">
-          <p className="text-sm font-semibold text-[var(--accent-2)]">📖 A verse for tonight</p>
-          {verse ? (
-            <>
-              <p className="mt-1.5 text-lg italic leading-relaxed">&ldquo;{verse.text}&rdquo;</p>
-              {verse.reference && (
-                <p className="mt-1 text-sm text-[var(--muted)]">— {verse.reference}</p>
-              )}
-            </>
-          ) : (
-            <p className="mt-1.5 text-sm text-[var(--muted)]">Finding a verse from the passage…</p>
-          )}
-        </section>
-      )}
-
-      {!loading && text && (
-        <p className="mt-6 border-t border-[var(--line)] pt-4 text-center text-sm text-[var(--muted)]">
-          🌙 The end. Sweet dreams.
-        </p>
-      )}
+        {!loading && text && (
+          <div className="hr-star mt-8 text-sm">
+            <span aria-hidden="true">🌙</span> The end. Sweet dreams.
+          </div>
+        )}
+      </div>
     </article>
   )
 }

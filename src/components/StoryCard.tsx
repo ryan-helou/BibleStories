@@ -3,22 +3,35 @@ import type { Story } from '@/content/schema'
 
 export function StoryCard({ story, isRead }: { story: Story; isRead: boolean }) {
   return (
-    <Link
-      href={`/story/${story.order}`}
-      className="lamplight block rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <span className="font-semibold">{story.title}</span>
+    <Link href={`/story/${story.order}`} className="card lift group block px-4 py-3.5">
+      <div className="flex items-start gap-3.5">
+        {/* Order chip — a numbered stepping-stone through the whole Bible. */}
         <span
-          className={isRead ? 'text-[var(--accent)]' : 'text-[var(--line)]'}
-          aria-label={isRead ? 'Read' : 'Not read yet'}
-          title={isRead ? 'Read' : 'Not read yet'}
+          aria-hidden="true"
+          className={`mt-0.5 grid h-9 w-9 flex-none place-items-center rounded-xl border text-sm font-semibold ${
+            isRead
+              ? 'border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]'
+              : 'border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]'
+          }`}
         >
-          {isRead ? '⭐' : '☆'}
+          {story.order}
         </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-semibold">{story.title}</span>
+            <span
+              className={`flex-none ${isRead ? 'text-[var(--accent)]' : 'text-[var(--line)]'}`}
+              aria-label={isRead ? 'Read' : 'Not read yet'}
+              title={isRead ? 'Read' : 'Not read yet'}
+            >
+              {isRead ? '⭐' : '☆'}
+            </span>
+          </div>
+          <span className="mt-0.5 block text-sm text-[var(--faint)]">{story.sourcePassage}</span>
+          <span className="mt-1 block text-sm text-[var(--muted)]">{story.teaser}</span>
+        </div>
       </div>
-      <span className="mt-0.5 block text-sm text-[var(--muted)]">{story.sourcePassage}</span>
-      <span className="mt-1 block text-sm">{story.teaser}</span>
     </Link>
   )
 }

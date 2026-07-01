@@ -15,14 +15,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>
       <body>
-        {/* Night-sky backdrop: warm moon-glow + a scatter of stars */}
+        {/* Night-sky backdrop: a slow aurora, a warm moon-glow + a scatter of stars */}
+        <div className="aurora" aria-hidden="true" />
         <div className="sky" aria-hidden="true" />
         <div className="mx-auto max-w-2xl px-5 py-8">{children}</div>
+        <footer className="mx-auto max-w-2xl px-5 pb-10 pt-4 text-center text-sm text-[var(--faint)]">
+          <span aria-hidden="true">🌙</span> Bedtime Bible Stories — read aloud, tucked in, and loved.
+        </footer>
       </body>
     </html>
   )

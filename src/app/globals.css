@@ -3,20 +3,44 @@
 /*
   "Goodnight, storybook" — a bedtime night-sky theme.
   Dark by design: this is a nighttime app, gentle on eyes at bedtime.
+
+  This file is the design system. It defines the palette, a handful of
+  reusable component primitives (.card, .btn, .field, .chip, .callout…),
+  and the ambient night-sky motion. Pages compose these rather than
+  redefining borders and shadows inline.
 */
 :root {
   --font-display: 'Fredoka', ui-rounded, 'Hiragino Maru Gothic ProN', 'Segoe UI Rounded',
     system-ui, sans-serif;
   --font-body: 'Nunito', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-story: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
 
   --bg: #171b3a;
   --surface: #2a3160; /* dusk card */
   --surface-2: #333b70; /* lifted / hover */
+  --surface-3: #3c4585; /* highest lift */
   --ink: #fdf3db; /* warm moonlight cream */
   --muted: #a6ace0; /* soft periwinkle */
+  --faint: #757bb8; /* dim periwinkle for meta text */
   --accent: #ffd27a; /* star / lamplight gold */
   --accent-2: #f4a29b; /* moon rose */
+  --accent-3: #b39cf0; /* twilight lavender */
   --line: #3b4488; /* hairline on dusk */
+  --line-soft: #313a72; /* quieter hairline */
+
+  --glow: rgba(255, 210, 122, 0.45);
+  --glow-soft: rgba(255, 210, 122, 0.22);
+
+  --radius: 1.25rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 1.75rem;
+
+  --shadow-card: 0 20px 55px -30px rgba(6, 8, 26, 0.9);
+  --shadow-lift: 0 26px 60px -26px rgba(6, 8, 26, 0.95), 0 0 0 1px rgba(255, 210, 122, 0.12);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -28,13 +52,40 @@ body {
     radial-gradient(120% 90% at 50% -20%, #3a3f7a 0%, #232a55 32%, #171b3a 70%),
     #12152e;
   background-attachment: fixed;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(255, 210, 122, 0.28);
+  color: var(--ink);
+}
+
+/* A slim, on-theme scrollbar so the dusk mood carries to the edges. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--surface-3);
+  background-clip: content-box;
 }
 
 /* The night sky: a warm moon-glow up top and a hand-scattered starfield. */
 .sky {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: -2;
   pointer-events: none;
   background-image:
     radial-gradient(closest-side, rgba(255, 210, 122, 0.28), rgba(255, 210, 122, 0) 70%),
@@ -57,11 +108,35 @@ body {
     0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
 }
 
+/* A slow, soft aurora/nebula drifting behind the sky for depth. */
+.aurora {
+  position: fixed;
+  inset: -20% -10% auto -10%;
+  height: 80vh;
+  z-index: -3;
+  pointer-events: none;
+  opacity: 0.5;
+  filter: blur(60px);
+  background:
+    radial-gradient(40% 55% at 22% 30%, rgba(179, 156, 240, 0.4), transparent 70%),
+    radial-gradient(38% 50% at 78% 22%, rgba(244, 162, 155, 0.32), transparent 70%),
+    radial-gradient(45% 55% at 55% 60%, rgba(255, 210, 122, 0.2), transparent 72%);
+  animation: auroraDrift 26s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift {
+  from {
+    transform: translate3d(-3%, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(4%, 2%, 0) scale(1.08);
+  }
+}
+
 h1,
 h2,
 h3 {
   font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 /* Friendly, visible keyboard focus that fits the lamplight motif. */
@@ -71,24 +146,336 @@ h3 {
   border-radius: 0.5rem;
 }
 
+/* ── Type helpers ─────────────────────────────────────────────── */
+
+/* A small uppercase label that introduces a section, lit like a star. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.eyebrow::before {
+  content: '';
+  width: 1.4rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+
+/* Warm gold→rose gradient text for hero headlines. */
+.gradient-text {
+  background: linear-gradient(120deg, #fff2cf 0%, var(--accent) 42%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Surfaces ─────────────────────────────────────────────────── */
+
+/* The workhorse surface: a dusk card with a lit top edge and soft depth. */
+.card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface) 62%);
+  border: 1px solid var(--line);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 223, 0.06),
+    var(--shadow-card);
+}
+
+/* A frostier, translucent variant for panels layered over the sky. */
+.card-glass {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(58, 66, 122, 0.72), rgba(38, 45, 92, 0.68));
+  border: 1px solid rgba(150, 160, 224, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 223, 0.08),
+    var(--shadow-card);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+}
+
+/* Interactive lift on hover — for cards that are links/buttons. */
+.lift {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.2s ease;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 210, 122, 0.4);
+  box-shadow: var(--shadow-lift);
+}
+
 /* A soft lamplight glow used to make interactive things feel "lit". */
 .lamplight {
   transition:
     box-shadow 0.25s ease,
     transform 0.2s ease,
+    border-color 0.25s ease,
     background-color 0.2s ease;
 }
 .lamplight:hover {
   background-color: var(--surface-2);
-  box-shadow: 0 0 0 1px rgba(255, 210, 122, 0.35), 0 8px 30px -12px rgba(255, 210, 122, 0.45);
+  border-color: rgba(255, 210, 122, 0.4);
+  box-shadow: 0 0 0 1px rgba(255, 210, 122, 0.35), 0 12px 34px -16px var(--glow);
   transform: translateY(-1px);
 }
 
-/* Gentle one-time rise for hero content on load. */
+/* ── Buttons ──────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.25s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Primary: warm lamplight fill with dark ink — the main call to action. */
+.btn-primary {
+  color: #2a1c05;
+  background: linear-gradient(180deg, #ffe4a6, var(--accent) 60%, #f2ba63);
+  border-color: rgba(255, 233, 184, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 12px 32px -14px var(--glow);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 16px 40px -12px var(--glow);
+}
+
+/* Soft: a lit outline on a dusk surface — secondary actions. */
+.btn-soft {
+  color: var(--accent);
+  background: var(--surface-2);
+  border-color: rgba(255, 210, 122, 0.55);
+}
+.btn-soft:hover:not(:disabled) {
+  background: var(--surface-3);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px -16px var(--glow);
+}
+
+/* Ghost: quiet, for tertiary/dismiss actions. */
+.btn-ghost {
+  color: var(--muted);
+  background: transparent;
+  border-color: var(--line);
+}
+.btn-ghost:hover:not(:disabled) {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.btn-lg {
+  padding: 0.9rem 1.6rem;
+  font-size: 1.05rem;
+}
+
+/* The "make a story" action: a warm lantern that glows a little on its own. */
+@keyframes lanternPulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 0 0 1px rgba(255, 210, 122, 0.4),
+      0 14px 44px -18px var(--glow);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 0 0 1px rgba(255, 210, 122, 0.62),
+      0 18px 56px -14px rgba(255, 210, 122, 0.72);
+  }
+}
+.lantern {
+  animation: lanternPulse 4.5s ease-in-out infinite;
+  transition: transform 0.2s ease;
+}
+.lantern:hover {
+  transform: translateY(-2px);
+}
+
+/* ── Form fields ──────────────────────────────────────────────── */
+
+.field {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(20, 24, 54, 0.55), rgba(30, 35, 74, 0.55));
+  color: var(--ink);
+  padding: 0.85rem 1rem;
+  box-shadow: inset 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+.field::placeholder {
+  color: var(--faint);
+}
+.field:focus {
+  outline: none;
+  border-color: rgba(255, 210, 122, 0.6);
+  box-shadow:
+    inset 0 2px 8px -4px rgba(0, 0, 0, 0.5),
+    0 0 0 3px var(--glow-soft);
+}
+
+/* ── Chips, pills, badges ─────────────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  padding: 0.5rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.chip-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 210, 122, 0.35);
+  background: rgba(255, 210, 122, 0.1);
+  color: var(--accent);
+  padding: 0.28rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ── Segmented / toggle option (length + age pickers) ─────────── */
+
+.opt {
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  font-weight: 600;
+  transition:
+    transform 0.16s ease,
+    border-color 0.2s ease,
+    box-shadow 0.22s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.opt:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 210, 122, 0.35);
+}
+.opt[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 223, 0.08),
+    0 0 0 1px rgba(255, 210, 122, 0.45),
+    0 10px 26px -16px var(--glow);
+}
+
+/* ── Callout (verse for tonight) ──────────────────────────────── */
+
+.callout {
+  position: relative;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(255, 210, 122, 0.08), rgba(244, 162, 155, 0.05));
+  border: 1px solid rgba(255, 210, 122, 0.22);
+  padding: 1.15rem 1.25rem 1.15rem 1.4rem;
+  overflow: hidden;
+}
+.callout::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+}
+
+/* ── Story typography ─────────────────────────────────────────── */
+
+/* The actual story reads like a printed page: a warm serif, roomy leading. */
+.prose-story {
+  font-family: var(--font-story);
+  font-optical-sizing: auto;
+}
+
+/* A gentle illuminated first letter to open a story. */
+.dropcap::first-letter {
+  float: left;
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: 3.1rem;
+  line-height: 0.82;
+  padding: 0.28rem 0.6rem 0 0;
+  color: var(--accent);
+  text-shadow: 0 6px 18px rgba(255, 210, 122, 0.35);
+}
+
+/* Decorative section divider with a centered star. */
+.hr-star {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  color: var(--faint);
+}
+.hr-star::before,
+.hr-star::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+}
+
+/* ── Motion ───────────────────────────────────────────────────── */
+
+/* Gentle one-time rise for content on load, with a small stagger option. */
 @keyframes riseIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -96,7 +483,13 @@ h3 {
   }
 }
 .rise {
-  animation: riseIn 0.5s ease both;
+  animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rise-2 {
+  animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+.rise-3 {
+  animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
 }
 
 /* Twinkling stars in the hero scene. */
@@ -115,32 +508,58 @@ h3 {
   animation-timing-function: ease-in-out;
 }
 
-/* The "make a story" action: a warm lantern that glows a little on its own. */
-@keyframes lanternPulse {
+/* A rare shooting star streaking across the hero. */
+@keyframes shoot {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  6% {
+    opacity: 1;
+  }
+  16% {
+    opacity: 0;
+    transform: translate(-170px, 90px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-170px, 90px);
+  }
+}
+.shoot {
+  animation: shoot 9s ease-in infinite;
+}
+
+/* Soft blink for the streaming cursor. */
+@keyframes caretBlink {
   0%,
   100% {
-    box-shadow: 0 0 0 1px rgba(255, 210, 122, 0.4), 0 12px 40px -16px rgba(255, 210, 122, 0.45);
+    opacity: 1;
   }
   50% {
-    box-shadow: 0 0 0 1px rgba(255, 210, 122, 0.6), 0 16px 52px -14px rgba(255, 210, 122, 0.7);
+    opacity: 0.2;
   }
 }
-.lantern {
-  animation: lanternPulse 4.5s ease-in-out infinite;
-  transition: transform 0.2s ease;
-}
-.lantern:hover {
-  transform: translateY(-2px);
+.caret {
+  animation: caretBlink 1.05s steps(1) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rise,
+  .rise-2,
+  .rise-3,
   .star,
-  .lantern {
+  .lantern,
+  .aurora,
+  .caret,
+  .shoot {
     animation: none;
   }
   .lamplight,
-  .lantern {
+  .lantern,
+  .lift,
+  .btn,
+  .opt {
     transition: none;
   }
 }
