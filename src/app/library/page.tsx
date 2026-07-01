@@ -15,7 +15,7 @@ export default function LibraryPage() {
   const last = progress.lastRead
 
   return (
-    <main>
+    <main className="mx-auto max-w-2xl">
       <div className="mb-4 text-sm">
         <Link href="/" className="font-semibold text-[var(--accent)] hover:text-[var(--ink)]">
           ← Home

@@ -31,7 +31,7 @@ export function StoryReader({
   const isFav = progress.favorites.includes(story.order)
 
   return (
-    <article className="rise">
+    <article className="rise mx-auto max-w-2xl">
       <div className="mb-5 flex items-center justify-between text-sm">
         <Link href="/library" className="font-semibold text-[var(--accent)] hover:text-[var(--ink)]">
           ← Library

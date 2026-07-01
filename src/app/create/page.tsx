@@ -4,7 +4,7 @@ import { StoryMaker } from '@/components/StoryMaker'
 
 export default function CreatePage() {
   return (
-    <main>
+    <main className="mx-auto max-w-2xl">
       <div className="mb-4 text-sm">
         <Link href="/library" className="font-semibold text-[var(--accent)] hover:text-[var(--ink)]">
           ← Library
