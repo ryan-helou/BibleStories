@@ -68,3 +68,69 @@ export function bandVoice(band: AgeBand): BandVoice {
 export function isAgeBandKey(value: string): value is AgeBand {
   return (AGE_BAND_KEYS as readonly string[]).includes(value)
 }
+
+// --- Parsing the generated output ---------------------------------------
+// The model streams the story, then a trailer with a few takeaways and one
+// verse, separated by these markers. We parse it out for display.
+
+export const TAKEAWAYS_MARKER = '===TAKEAWAYS==='
+export const VERSE_MARKER = '===VERSE==='
+
+export interface Verse {
+  text: string
+  reference: string | null
+}
+
+export interface ParsedStory {
+  story: string
+  takeaways: string[]
+  verse: Verse | null
+}
+
+function stripTrailingMarker(s: string): string {
+  // While streaming, hide a partially-arrived trailing marker like "\n===TAK".
+  return s.replace(/\n*=+[A-Za-z]*\s*$/, '')
+}
+
+function parseVerse(block: string): Verse {
+  // Expected: "verse text" — Book 1:1 (tolerate curly quotes and en/em dashes).
+  const quoted = block.match(/^["“]([\s\S]+?)["”]\s*[—–-]\s*([\s\S]+?)\s*$/)
+  if (quoted) return { text: quoted[1].trim(), reference: quoted[2].trim() }
+
+  for (const sep of [' — ', ' – ', ' - ']) {
+    const i = block.lastIndexOf(sep)
+    if (i >= 0) {
+      return {
+        text: block.slice(0, i).replace(/^["“]|["”]$/g, '').trim(),
+        reference: block.slice(i + sep.length).trim() || null,
+      }
+    }
+  }
+  return { text: block.replace(/^["“]|["”]$/g, '').trim(), reference: null }
+}
+
+export function parseGeneratedStory(raw: string): ParsedStory {
+  const takeIdx = raw.indexOf(TAKEAWAYS_MARKER)
+  const verseIdx = raw.indexOf(VERSE_MARKER)
+
+  const storyEnd = takeIdx >= 0 ? takeIdx : raw.length
+  const story = stripTrailingMarker(raw.slice(0, storyEnd)).trim()
+
+  let takeaways: string[] = []
+  if (takeIdx >= 0) {
+    const end = verseIdx > takeIdx ? verseIdx : raw.length
+    takeaways = raw
+      .slice(takeIdx + TAKEAWAYS_MARKER.length, end)
+      .split('\n')
+      .map((line) => line.replace(/^\s*[-*•]\s*/, '').trim())
+      .filter(Boolean)
+  }
+
+  let verse: Verse | null = null
+  if (verseIdx >= 0) {
+    const block = raw.slice(verseIdx + VERSE_MARKER.length).trim()
+    if (block) verse = parseVerse(block)
+  }
+
+  return { story, takeaways, verse }
+}

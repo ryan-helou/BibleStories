@@ -2,7 +2,12 @@
 import { useRef, useState } from 'react'
 import { StoryBody } from '@/components/StoryBody'
 import { NarrationButton } from '@/components/NarrationButton'
-import { CustomStoryRequestSchema, bandVoice, categorizeAge } from '@/lib/customStory'
+import {
+  CustomStoryRequestSchema,
+  bandVoice,
+  categorizeAge,
+  parseGeneratedStory,
+} from '@/lib/customStory'
 
 const LENGTH_OPTIONS = [1, 2, 3, 5, 8, 12] as const
 
@@ -159,29 +164,74 @@ export function StoryMaker() {
       )}
 
       {(story || loading) && (
-        <article
-          aria-live="polite"
-          className="mt-6 rounded-3xl border border-[var(--line)] bg-[var(--surface)] px-6 py-6 shadow-[0_16px_50px_-20px_rgba(255,210,122,0.4)]"
-        >
-          {!loading && story && (
-            <div className="mb-4 flex justify-end">
-              <NarrationButton text={story} resetKey={String(genId)} />
-            </div>
-          )}
-          {loading && !story && <p className="text-[var(--muted)]">Once upon a time…</p>}
-          <StoryBody body={story} />
-          {loading && story && (
-            <span className="text-[var(--accent)]" aria-hidden="true">
-              ▍
-            </span>
-          )}
-          {!loading && story && (
-            <p className="mt-6 border-t border-[var(--line)] pt-4 text-center text-sm text-[var(--muted)]">
-              🌙 The end. Sweet dreams.
-            </p>
-          )}
-        </article>
+        <StoryResult story={story} loading={loading} genId={genId} />
       )}
     </div>
+  )
+}
+
+function StoryResult({
+  story,
+  loading,
+  genId,
+}: {
+  story: string
+  loading: boolean
+  genId: number
+}) {
+  const { story: text, takeaways, verse } = parseGeneratedStory(story)
+  const narrationText = verse ? `${text}\n\n${verse.text}` : text
+
+  return (
+    <article
+      aria-live="polite"
+      className="mt-6 rounded-3xl border border-[var(--line)] bg-[var(--surface)] px-6 py-6 shadow-[0_16px_50px_-20px_rgba(255,210,122,0.4)]"
+    >
+      {!loading && text && (
+        <div className="mb-4 flex justify-end">
+          <NarrationButton text={narrationText} resetKey={String(genId)} />
+        </div>
+      )}
+
+      {loading && !text && <p className="text-[var(--muted)]">Once upon a time…</p>}
+      <StoryBody body={text} />
+      {loading && text && (
+        <span className="text-[var(--accent)]" aria-hidden="true">
+          ▍
+        </span>
+      )}
+
+      {!loading && takeaways.length > 0 && (
+        <section className="mt-8 border-t border-[var(--line)] pt-5">
+          <h3 className="mb-3 font-semibold text-[var(--accent)]">✨ Things to remember</h3>
+          <ul className="space-y-2">
+            {takeaways.map((t, i) => (
+              <li key={i} className="flex gap-2.5">
+                <span aria-hidden="true" className="text-[var(--accent)]">
+                  ★
+                </span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {!loading && verse && (
+        <section className="mt-6 rounded-2xl border-l-4 border-[var(--accent)] bg-[var(--surface-2)] px-4 py-4">
+          <p className="text-sm font-semibold text-[var(--accent-2)]">📖 A verse for tonight</p>
+          <p className="mt-1.5 text-lg italic leading-relaxed">&ldquo;{verse.text}&rdquo;</p>
+          {verse.reference && (
+            <p className="mt-1 text-sm text-[var(--muted)]">— {verse.reference}</p>
+          )}
+        </section>
+      )}
+
+      {!loading && text && (
+        <p className="mt-6 border-t border-[var(--line)] pt-4 text-center text-sm text-[var(--muted)]">
+          🌙 The end. Sweet dreams.
+        </p>
+      )}
+    </article>
   )
 }
