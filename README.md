@@ -1,74 +1,19 @@
 # Bedtime Bible Stories
 
-A calm, bedtime-friendly website where a **parent** picks their child's age band and
-reads a Bible story aloud. The library walks **chronologically through the whole
-Protestant Bible (66 books)**, so over many nights a family experiences Scripture as one
-connected story.
+*A calm reading website where a parent picks a child's age band and reads one chronological Bible story aloud at bedtime.*
 
-Parents are the users; kids listen (often falling asleep). Every choice favors reading
-aloud in a dim room: warm low-glare theme, large serif type, minimal taps.
+The library walks in order through the Protestant Bible (66 books), grouped into nine eras — Creation, Patriarchs, Exodus, Judges, Kings, Exile, Return, Life of Jesus, and Early Church — so that over many nights a family reads Scripture as one connected story. Parents are the users; kids listen, often falling asleep. Every choice serves reading aloud in a dim room: large serif type, a warm cream-or-dusk palette, minimal taps, no animation. Each story ends, quietly, with "Good night."
 
-Stories are **pre-authored content** — there is no runtime LLM, no database, and no login
-in this MVP. Age band and reading progress are stored in the browser (`localStorage`).
+The interesting part is where the stories come from. They are not generated at runtime. Each one is drafted by Claude Code during a build-time authoring session, reviewed by a human against a short checklist — biblically faithful, age-appropriate, reads well aloud, no invented events — and then committed as a plain TypeScript file. So the shipped site carries no LLM, no API key, and no database: it serves stored text, loads instantly, and every word was read before it went live. Cross-references are real, checkable verses rather than plausible-sounding inventions.
 
-## Develop
+## Age bands and structure
 
-```bash
-npm install
-npm run dev      # http://localhost:3000
-npm test         # run the test suite (Vitest)
-npm run build    # static production build
-```
+Every story is authored three times, for ages 3–5, 6–8, and 9–12, tuned in vocabulary, length, and depth; a parent picks a band (6–8 by default) and can switch it anytime. Each story shares an `order`, `era`, `title`, `sourcePassage` (e.g. *Genesis 6–9*), and a one-line `teaser`, and each age band adds its own `body`, `themes`, `takeaways`, optional `historicalContext`, `crossReferences`, and `pronunciationHints` for tricky names. During the read only the `body` shows, so nothing interrupts the flow; the rest waits in a "Reflect together" section afterward. For the youngest band, context and cross-references are mostly left out.
 
-## How it works
+Progress lives entirely in the browser (`localStorage`): the last story read for "Continue where you left off," a checkmark on each finished story, favorites, and the chosen band. No account, and nothing leaves the device.
 
-- **Age bands** — `3–5`, `6–8`, `9–12`. Each story is authored at all three, tuned in
-  vocabulary, length, and depth. Parents can switch bands anytime; the choice is remembered.
-- **Content model** — every story has a shared part (`order`, `era`, `title`,
-  `sourcePassage`, `teaser`) and a per-band part (`body`, `themes`, `takeaways`, optional
-  `historicalContext`, `crossReferences`, `pronunciationHints`). During the read only the
-  `body` shows; the rest appears in a quiet "Reflect together" section afterward.
-- **Reading length** — one telling per band, sized for a fuller bedtime read
-  (roughly 3–7 minutes read aloud, scaling up with age).
-- **Progress** — last story read ("Continue where you left off"), completed stories
-  (✓ in the library), favorites, and the chosen age band, all in `localStorage`.
-- **Rendering** — statically generated (SSG). The home page lists stories grouped by era;
-  each `/story/[order]` page is prerendered.
+## Content and build
 
-## Content
+Stories are typed modules in `src/content/stories/`, validated by a Zod schema in `src/content/schema.ts`. A story is added by exporting a `Story` from `NNN-title.ts` and listing it in `src/content/library.ts`; `validateLibrary` refuses to build unless `order` values are unique and gapless from 1. The site is a statically generated Next.js 16 app (React 19, Tailwind v4, Vitest for the content and component tests), prerendering the era-grouped home page and one page per `/story/[order]`, deployed on Vercel.
 
-Stories live in `src/content/stories/` as typed modules validated by
-`src/content/schema.ts` (Zod). To add a story:
-
-1. Create `src/content/stories/NNN-title.ts` exporting `const story: Story`.
-2. Add it to the `RAW` array in `src/content/library.ts`.
-3. `order` values must be unique and gapless starting at 1 — `validateLibrary` enforces
-   this at build time, and `tests/content/stories.test.ts` checks the library.
-
-Authoring style: read-aloud rhythm, calm bedtime tone, Protestant framing, faithful to the
-source passage (no invented events), each `body` ending with a gentle "Good night."
-
-## Project layout
-
-```
-src/content/    schema (Zod), age bands, eras, stories, library loader
-src/lib/        localStorage progress layer + React hooks
-src/components/ AgeBandPicker, StoryCard, EraSection, StoryBody,
-                PronunciationHints, ReflectTogether
-src/app/        layout + bedtime theme, home page, story/[order] route
-tests/          content, lib, and component tests (Vitest + Testing Library)
-```
-
-## Deploy
-
-Static site — deploy to Vercel (personal scope):
-
-```bash
-vercel --scope jameshelou-1395s-projects
-```
-
-## Roadmap
-
-- **Phase 2:** optional live "generate a story" feature behind a flag, with A/B testing
-  (adds an API key + a database to store generated stories).
-- **Phase 3:** optional text-to-speech voice narration.
+This is an MVP: three stories so far — Creation, Noah and the Flood, and the Birth of Jesus — enough to prove the whole reading experience and settle the writing style before the library grows. A later phase adds an optional live "generate a story" mode and, eventually, text-to-speech narration.
