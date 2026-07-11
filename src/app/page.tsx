@@ -1,7 +1,11 @@
+'use client'
 import Link from 'next/link'
 import { NightSkyHero } from '@/components/NightSkyHero'
 import { StoryBody } from '@/components/StoryBody'
 import { AGE_BANDS } from '@/content/ageBands'
+import { getStoryByOrder } from '@/content/library'
+import { useAgeBand } from '@/lib/useAgeBand'
+import { useProgress } from '@/lib/useProgress'
 import {
   ArrowRightIcon,
   BookIcon,
@@ -50,8 +54,52 @@ const SAMPLE_STORY = `In the very beginning, before there was anything at all, t
 On the first day, God spoke into the darkness. "Let there be light," he said. And just like that, light appeared and pushed the darkness back.`
 
 export default function LandingPage() {
+  const { progress } = useProgress()
+  const { ageBand } = useAgeBand()
+
+  const hasProgress = progress.lastRead != null || progress.read.length > 0
+  const lastStory = progress.lastRead != null ? getStoryByOrder(progress.lastRead) : undefined
+  const ageLabel = AGE_BANDS.find((b) => b.key === ageBand)?.label ?? 'Any age'
+
   return (
     <main className="mx-auto max-w-5xl">
+      {/* ── Welcome back: calm band for returning parents (post-mount) ─ */}
+      {hasProgress && (
+        <section className="rise mb-10">
+          <div className="rounded-3xl border border-[var(--line)] bg-[var(--surface)] px-6 py-6 shadow-[var(--shadow-card)] sm:px-8 sm:py-7">
+            <span className="eyebrow">Welcome back</span>
+            <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                {progress.lastRead != null ? (
+                  <Link
+                    href={`/story/${progress.lastRead}`}
+                    className="inline-flex items-center gap-1.5 text-lg font-semibold text-[var(--accent)] hover:text-[var(--ink)]"
+                  >
+                    Continue where you left off
+                    {lastStory ? <span className="text-[var(--ink)]">: {lastStory.title}</span> : null}
+                    <ArrowRightIcon size={17} />
+                  </Link>
+                ) : (
+                  <p className="text-lg font-semibold text-[var(--ink)]">Pick up where you left off</p>
+                )}
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  <Link href="/create" className="font-medium text-[var(--accent)] hover:text-[var(--ink)]">
+                    Make tonight’s story
+                  </Link>
+                  {' · '}
+                  <Link href="/library" className="hover:text-[var(--ink)]">
+                    Browse the library
+                  </Link>
+                </p>
+              </div>
+              <Link href="/create" className="btn btn-primary shrink-0">
+                Make a story
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Hero: text + CTAs beside the night-sky art on desktop ─── */}
       <section className="rise mb-16 grid items-center gap-6 lg:grid-cols-2 lg:gap-10">
         <div className="order-2 lg:order-1">
@@ -71,7 +119,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="mt-4 text-sm text-[var(--faint)]">
-            Free to try · No sign-up · Under a penny a story
+            Free · No sign-up
           </p>
         </div>
         <div className="order-1 lg:order-2">
@@ -109,7 +157,7 @@ export default function LandingPage() {
           <div className="card overflow-hidden">
             <div className="flex items-center justify-between border-b border-[var(--line-soft)] bg-[var(--surface-2)]/40 px-6 py-3">
               <span className="eyebrow">A peek at tonight’s story</span>
-              <span className="badge">Ages 6–8</span>
+              <span className="badge">{ageLabel}</span>
             </div>
             <div className="px-6 py-6 sm:px-7">
               <div className="prose-story">
