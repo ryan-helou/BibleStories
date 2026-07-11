@@ -1,74 +1,113 @@
-# Bedtime Bible Stories
+# 🌙 Bedtime Bible Stories
 
-A calm, bedtime-friendly website where a **parent** picks their child's age band and
-reads a Bible story aloud. The library walks **chronologically through the whole
-Protestant Bible (66 books)**, so over many nights a family experiences Scripture as one
-connected story.
+A calm, bedtime-friendly website where a **parent** reads Bible stories aloud to their
+kids. Parents are the users; kids listen (often falling asleep). Every choice favors
+reading aloud in a dim room: a warm, low-glare night theme, large serif type, and minimal
+taps.
 
-Parents are the users; kids listen (often falling asleep). Every choice favors reading
-aloud in a dim room: warm low-glare theme, large serif type, minimal taps.
+There are **two ways to use it**:
 
-Stories are **pre-authored content** — there is no runtime LLM, no database, and no login
-in this MVP. Age band and reading progress are stored in the browser (`localStorage`).
+1. **📖 A pre-authored library** — a chronological walk through the **Protestant canon**.
+   Each story is hand-authored at three age bands (**3–5**, **6–8**, **9–12**), each tuned
+   in vocabulary, length, and depth, and each carrying themes, takeaways, historical
+   context, cross-references, and pronunciation hints. Read-aloud progress (last story,
+   completed stories, favorites, chosen age band) lives in the browser (`localStorage`).
+2. **✨ An AI custom-story generator** (`/create`) — the parent enters the **child's age**,
+   a **description** of the story or lesson they want, and the **desired minutes**, and a
+   fresh bedtime story is written live, streaming word by word, with a few takeaways and an
+   accurate verse for tonight.
 
-## Develop
+Both paths support **read-aloud narration** using the browser's built-in speech synthesis,
+with adjustable voice, speed, and a sleep timer.
+
+## 🛠️ Develop
 
 ```bash
 npm install
 npm run dev      # http://localhost:3000
 npm test         # run the test suite (Vitest)
-npm run build    # static production build
+npm run build    # production build
 ```
 
-## How it works
+## 🔑 Environment
 
-- **Age bands** — `3–5`, `6–8`, `9–12`. Each story is authored at all three, tuned in
-  vocabulary, length, and depth. Parents can switch bands anytime; the choice is remembered.
-- **Content model** — every story has a shared part (`order`, `era`, `title`,
-  `sourcePassage`, `teaser`) and a per-band part (`body`, `themes`, `takeaways`, optional
-  `historicalContext`, `crossReferences`, `pronunciationHints`). During the read only the
-  `body` shows; the rest appears in a quiet "Reflect together" section afterward.
-- **Reading length** — one telling per band, sized for a fuller bedtime read
-  (roughly 3–7 minutes read aloud, scaling up with age).
-- **Progress** — last story read ("Continue where you left off"), completed stories
-  (✓ in the library), favorites, and the chosen age band, all in `localStorage`.
-- **Rendering** — statically generated (SSG). The home page lists stories grouped by era;
-  each `/story/[order]` page is prerendered.
+The AI features call the **Anthropic API**, so they need a key:
 
-## Content
+```bash
+cp .env.local.example .env.local
+# then set ANTHROPIC_API_KEY=sk-ant-...   (get one at console.anthropic.com)
+```
 
-Stories live in `src/content/stories/` as typed modules validated by
-`src/content/schema.ts` (Zod). To add a story:
+The static **library** and the **read-aloud reader** work fine **without** a key. Only
+`/create` (story generation) and the accompanying verse lookup require `ANTHROPIC_API_KEY`.
 
-1. Create `src/content/stories/NNN-title.ts` exporting `const story: Story`.
+## 🏗️ Architecture
+
+- **Next.js 16** (App Router) on **React 19**. The marketing landing page and the library /
+  reader pages are statically generated (SSG); each `/story/[order]` page is prerendered.
+- **Tailwind CSS v4** for the bedtime theme.
+- **Zod-validated content** — every library story is a typed module in
+  `src/content/stories/`, validated against `src/content/schema.ts` at build time and in
+  tests.
+- **A runtime LLM.** Two API routes call Anthropic via `@anthropic-ai/sdk`:
+  - `POST /api/generate` — writes the story. Uses **Claude Haiku** (the cheap, fast model,
+    ~a penny or less per story) and **streams** the text back as it's written.
+    (System/user prompts live in `src/lib/storyPrompt.ts`; input is validated by
+    `CustomStoryRequestSchema` in `src/lib/customStory.ts`.)
+  - `POST /api/verse` — after the story finishes, asks **Claude Sonnet** (better at pinning
+    the verse to the story's actual passage) for one short, real verse with an accurate
+    reference.
+- **`localStorage`** holds reading progress and age band (`src/lib/progress.ts`,
+  `useProgress`, `useAgeBand`) plus narration preferences — voice, rate, and sleep-timer
+  minutes (`src/lib/useNarration.ts`). No database, no login.
+
+> Note: earlier versions of this README described the app as having "no runtime LLM." That
+> is no longer true — the `/create` generator and the verse lookup both call the Anthropic
+> API at runtime.
+
+## 📚 Content — adding a library story
+
+1. Create `src/content/stories/NNN-title.ts` exporting `const story: Story` (shape defined
+   by `StorySchema`: `order`, `era`, `title`, `sourcePassage`, `teaser`, and a `bands`
+   object with `3-5` / `6-8` / `9-12` content).
 2. Add it to the `RAW` array in `src/content/library.ts`.
-3. `order` values must be unique and gapless starting at 1 — `validateLibrary` enforces
+3. `order` values must be **unique and gapless** starting at 1 — `validateLibrary` enforces
    this at build time, and `tests/content/stories.test.ts` checks the library.
 
 Authoring style: read-aloud rhythm, calm bedtime tone, Protestant framing, faithful to the
-source passage (no invented events), each `body` ending with a gentle "Good night."
+source passage (no invented events), each `body` ending on a gentle, comforting note.
 
-## Project layout
+## 🗂️ Project layout
 
 ```
-src/content/    schema (Zod), age bands, eras, stories, library loader
-src/lib/        localStorage progress layer + React hooks
-src/components/ AgeBandPicker, StoryCard, EraSection, StoryBody,
-                PronunciationHints, ReflectTogether
-src/app/        layout + bedtime theme, home page, story/[order] route
-tests/          content, lib, and component tests (Vitest + Testing Library)
+src/content/    Zod schema, age bands, eras, stories/, library loader
+src/lib/        customStory (validation + parsing), storyPrompt (LLM prompts),
+                progress + narration state, React hooks (useProgress, useAgeBand, useNarration)
+src/components/ AgeBandPicker, EraSection, StoryCard, StoryBody, PronunciationHints,
+                ReflectTogether, NarrationButton, NightSkyHero, StoryMaker (the /create UI), icons
+src/app/        layout + bedtime theme, landing page, /library, /create, /story/[order],
+                api/generate, api/verse
+tests/          content, lib, and component tests + smoke test (Vitest + Testing Library)
 ```
 
-## Deploy
+## 🚀 Deploy
 
-Static site — deploy to Vercel (personal scope):
+Deploy to Vercel (personal scope):
 
 ```bash
 vercel --scope jameshelou-1395s-projects
 ```
 
-## Roadmap
+Set `ANTHROPIC_API_KEY` in the Vercel project's environment variables, or the AI routes
+will return a 500. **Before a public launch**, add **rate-limiting** to the public
+`/api/generate` and `/api/verse` endpoints and set an **Anthropic spend cap** — both routes
+call a paid API and are currently unauthenticated.
 
-- **Phase 2:** optional live "generate a story" feature behind a flag, with A/B testing
-  (adds an API key + a database to store generated stories).
-- **Phase 3:** optional text-to-speech voice narration.
+## 🧭 Roadmap
+
+- **Favorites view** — favorites are already tracked in `localStorage`; surface them as a
+  dedicated list in the library.
+- **Saved-story persistence** — let parents keep and revisit generated custom stories
+  (currently a generated story lives only in the session).
+- **Sleep timer** — already implemented in narration (`useNarration`); polish and expose
+  more prominently in the reader.
