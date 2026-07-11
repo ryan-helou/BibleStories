@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useId, useState } from 'react'
-import { useNarration } from '@/lib/useNarration'
+import { useNarration, SLEEP_OPTIONS } from '@/lib/useNarration'
 import { VolumeIcon, PlayIcon, PauseIcon, StopIcon } from '@/components/icons'
 
 const SPEEDS = [
@@ -10,16 +10,41 @@ const SPEEDS = [
   { label: 'Lively', value: 1.15 },
 ] as const
 
+const sleepLabel = (m: number) => (m === 0 ? 'Off' : `${m} min`)
+
 const PREVIEW = 'Once upon a time, under a sky full of stars, there was a story just for you.'
 
 /**
- * "Read it to me" control with a voice + speed picker. Speaks `text` aloud with
- * the browser voice. Renders nothing where speech synthesis is unavailable.
- * `resetKey` stops playback whenever it changes (e.g. a new story loads).
+ * "Read it to me" control with a voice + speed picker and an optional sleep
+ * timer. Speaks `text` aloud with the browser voice. Renders nothing where
+ * speech synthesis is unavailable. `resetKey` stops playback whenever it
+ * changes (e.g. a new story loads). Set `showSleepTimer={false}` to hide the
+ * auto-stop control.
  */
-export function NarrationButton({ text, resetKey }: { text: string; resetKey?: string }) {
-  const { supported, state, play, pause, resume, stop, voices, voiceURI, setVoiceURI, rate, setRate } =
-    useNarration()
+export function NarrationButton({
+  text,
+  resetKey,
+  showSleepTimer = true,
+}: {
+  text: string
+  resetKey?: string
+  showSleepTimer?: boolean
+}) {
+  const {
+    supported,
+    state,
+    play,
+    pause,
+    resume,
+    stop,
+    voices,
+    voiceURI,
+    setVoiceURI,
+    rate,
+    setRate,
+    sleepMinutes,
+    setSleepMinutes,
+  } = useNarration()
   const [open, setOpen] = useState(false)
   const panelId = useId()
 
@@ -50,6 +75,14 @@ export function NarrationButton({ text, resetKey }: { text: string; resetKey?: s
             <button type="button" onClick={stop} className="btn btn-ghost text-sm">
               <StopIcon size={15} /> Stop
             </button>
+            {showSleepTimer && sleepMinutes > 0 && (
+              <span
+                className="text-xs text-[var(--muted)]"
+                title={`Narration will stop after ${sleepMinutes} minutes`}
+              >
+                sleeps in {sleepMinutes} min
+              </span>
+            )}
           </>
         )}
 
@@ -114,6 +147,34 @@ export function NarrationButton({ text, resetKey }: { text: string; resetKey?: s
               </button>
             ))}
           </div>
+
+          {showSleepTimer && (
+            <div className="mt-4">
+              <label
+                htmlFor={`${panelId}-sleep`}
+                className="mb-1.5 block text-sm font-semibold"
+              >
+                Sleep timer
+              </label>
+              <select
+                id={`${panelId}-sleep`}
+                value={sleepMinutes}
+                onChange={(e) => setSleepMinutes(Number(e.target.value))}
+                className="field text-sm"
+              >
+                {SLEEP_OPTIONS.map((m) => (
+                  <option key={m} value={m}>
+                    {sleepLabel(m)}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-[var(--muted)]">
+                {sleepMinutes === 0
+                  ? 'Reads all the way to the end.'
+                  : `Gently stops after ${sleepMinutes} minutes.`}
+              </p>
+            </div>
+          )}
 
           <button
             type="button"
