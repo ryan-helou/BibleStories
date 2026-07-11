@@ -88,8 +88,10 @@ export interface ParsedStory {
 }
 
 function stripTrailingMarker(s: string): string {
-  // While streaming, hide a partially-arrived trailing marker like "\n===TAK".
-  return s.replace(/\n*=+[A-Za-z]*\s*$/, '')
+  // While streaming, hide a partially-arrived trailing marker. This must cover
+  // every frame of "===TAKEAWAYS===" as it streams in — including the closing
+  // "=" runs ("===TAKEAWAYS=", "===TAKEAWAYS==") — so allow trailing equals too.
+  return s.replace(/\n*=+[A-Za-z]*=*\s*$/, '')
 }
 
 export function parseVerse(block: string): Verse {

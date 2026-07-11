@@ -1,16 +1,9 @@
-import Link from 'next/link'
 import { NightSkyHero } from '@/components/NightSkyHero'
 import { StoryMaker } from '@/components/StoryMaker'
 
 export default function CreatePage() {
   return (
     <main className="mx-auto max-w-2xl">
-      <div className="mb-4 text-sm">
-        <Link href="/library" className="font-semibold text-[var(--accent)] hover:text-[var(--ink)]">
-          ← Library
-        </Link>
-      </div>
-
       <header className="rise mb-7">
         <NightSkyHero height="short">
           <span className="eyebrow mb-2 drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
