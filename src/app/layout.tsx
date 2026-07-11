@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import './globals.css'
 import { MoonIcon } from '@/components/icons'
 
@@ -24,6 +25,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Night-sky backdrop: a slow aurora, a warm moon-glow + a scatter of stars */}
         <div className="aurora" aria-hidden="true" />
         <div className="sky" aria-hidden="true" />
+        {/* Persistent header so every page has a home, a library, and a create
+            link — no more dead ends or bespoke per-page back-links. */}
+        <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 pt-3">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-semibold text-[var(--ink)] hover:text-[var(--accent)]"
+          >
+            <MoonIcon size={18} />
+            <span>Bedtime Bible Stories</span>
+          </Link>
+          <nav className="flex items-center gap-5 text-sm font-semibold">
+            <Link href="/library" className="text-[var(--muted)] hover:text-[var(--accent)]">
+              Library
+            </Link>
+            <Link href="/create" className="text-[var(--accent)] hover:text-[var(--ink)]">
+              Create
+            </Link>
+          </nav>
+        </header>
         {/* Full-width shell; each page picks its own max width (landing goes
             wide, reading pages stay a cozy max-w-2xl for comfortable line length). */}
         <div className="px-5 py-8">{children}</div>
