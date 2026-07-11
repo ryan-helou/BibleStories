@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { Story } from '@/content/schema'
 import { StoryBody } from '@/components/StoryBody'
@@ -23,20 +23,34 @@ export function StoryReader({
   const { ageBand, setAgeBand } = useAgeBand()
   const { progress, markRead, toggleFavorite, setLastRead } = useProgress()
   const content = story.bands[ageBand]
+  const endRef = useRef<HTMLDivElement | null>(null)
 
+  // Opening a story records it as "where you left off" — but NOT as read.
+  // "Read" is a completion signal, so the library's ✓ / count stay honest.
   useEffect(() => {
-    markRead(story.order)
     setLastRead(story.order)
-  }, [story.order, markRead, setLastRead])
+  }, [story.order, setLastRead])
+
+  // Auto-mark read once the end of the story scrolls into view.
+  useEffect(() => {
+    const el = endRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) markRead(story.order)
+      },
+      { threshold: 0.1 },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [story.order, markRead])
 
   const isFav = progress.favorites.includes(story.order)
+  const isRead = progress.read.includes(story.order)
 
   return (
     <article className="rise mx-auto max-w-2xl">
-      <div className="mb-5 flex items-center justify-between text-sm">
-        <Link href="/library" className="font-semibold text-[var(--accent)] hover:text-[var(--ink)]">
-          ← Library
-        </Link>
+      <div className="mb-5 flex items-center justify-end text-sm">
         <button
           type="button"
           onClick={() => toggleFavorite(story.order)}
@@ -74,7 +88,18 @@ export function StoryReader({
 
       <ReflectTogether content={content} />
 
-      <nav className="mt-10 flex justify-between gap-3">
+      <div ref={endRef} className="mt-8 flex justify-center">
+        <button
+          type="button"
+          onClick={() => markRead(story.order)}
+          disabled={isRead}
+          className={`btn text-sm ${isRead ? 'btn-ghost text-[var(--muted)]' : 'btn-soft'}`}
+        >
+          <StarIcon size={15} filled={isRead} /> {isRead ? 'Read tonight' : 'Mark tonight as read'}
+        </button>
+      </div>
+
+      <nav className="mt-8 flex justify-between gap-3">
         {prevOrder != null ? (
           <Link href={`/story/${prevOrder}`} className="btn btn-ghost text-sm">
             ← Previous

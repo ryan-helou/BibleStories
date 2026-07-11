@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { StoryReader } from '@/app/story/[order]/StoryReader'
 import { loadProgress } from '@/lib/progress'
 import type { Story } from '@/content/schema'
@@ -23,10 +24,16 @@ describe('StoryReader', () => {
     expect(screen.getByText('Middle body.')).toBeInTheDocument() // default band 6-8
   })
 
-  it('marks the story read and records last-read on mount', () => {
+  it('records last-read on mount but does NOT mark it read (read is a completion signal)', () => {
     render(<StoryReader story={story} prevOrder={null} nextOrder={2} />)
     const p = loadProgress()
-    expect(p.read).toContain(1)
     expect(p.lastRead).toBe(1)
+    expect(p.read).not.toContain(1)
+  })
+
+  it('marks the story read when the parent taps "Mark tonight as read"', async () => {
+    render(<StoryReader story={story} prevOrder={null} nextOrder={2} />)
+    await userEvent.click(screen.getByRole('button', { name: /Mark tonight as read/ }))
+    expect(loadProgress().read).toContain(1)
   })
 })

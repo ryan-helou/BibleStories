@@ -77,7 +77,11 @@ export function splitIntoChunks(text: string): string[] {
  */
 const VOICE_KEY = 'narration.voiceURI'
 const RATE_KEY = 'narration.rate'
+const SLEEP_KEY = 'biblestories.sleepTimerMinutes'
 const DEFAULT_RATE = 0.9
+
+// Sleep-timer choices, in minutes. 0 = off (read to the end).
+export const SLEEP_OPTIONS = [0, 5, 10, 15, 30] as const
 
 export function useNarration() {
   const [supported, setSupported] = useState(false)
@@ -88,12 +92,29 @@ export function useNarration() {
   const [voiceURI, setVoiceURIState] = useState<string>('')
   const [rate, setRateState] = useState<number>(DEFAULT_RATE)
 
+  // Sleep timer: auto-stop after N minutes (0 = off). Remembered per device.
+  const [sleepMinutes, setSleepMinutesState] = useState<number>(0)
+
   // Playback session state, kept in refs so the chunk queue survives re-renders.
   const chunksRef = useRef<string[]>([])
   const idxRef = useRef(0)
   const tokenRef = useRef(0) // bumped to invalidate an in-flight queue on stop/replay
   const rateRef = useRef(DEFAULT_RATE)
   const voiceRef = useRef<SpeechSynthesisVoice | undefined>(undefined)
+  // Hold the live utterance so Chrome can't GC it mid-speech before onend fires.
+  const utterRef = useRef<SpeechSynthesisUtterance | null>(null)
+  // The sleep-timer countdown, cleared on stop / unmount / new play.
+  const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Read the chosen minutes from a ref so play() always uses the latest value.
+  const sleepMinutesRef = useRef(0)
+  sleepMinutesRef.current = sleepMinutes
+
+  const clearSleepTimer = useCallback(() => {
+    if (sleepTimerRef.current !== null) {
+      clearTimeout(sleepTimerRef.current)
+      sleepTimerRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
@@ -104,6 +125,10 @@ export function useNarration() {
       if (savedVoice) setVoiceURIState(savedVoice)
       const savedRate = Number(localStorage.getItem(RATE_KEY))
       if (savedRate >= 0.6 && savedRate <= 1.4) setRateState(savedRate)
+      const savedSleep = Number(localStorage.getItem(SLEEP_KEY))
+      if (SLEEP_OPTIONS.includes(savedSleep as (typeof SLEEP_OPTIONS)[number])) {
+        setSleepMinutesState(savedSleep)
+      }
     } catch {
       // localStorage may be unavailable (private mode); fall back to defaults.
     }
@@ -113,6 +138,8 @@ export function useNarration() {
     window.speechSynthesis.addEventListener('voiceschanged', load)
     return () => {
       window.speechSynthesis.removeEventListener('voiceschanged', load)
+      if (sleepTimerRef.current !== null) clearTimeout(sleepTimerRef.current)
+      utterRef.current = null
       window.speechSynthesis.cancel()
     }
   }, [])
@@ -154,6 +181,7 @@ export function useNarration() {
   const speakNext = useCallback((token: number) => {
     if (token !== tokenRef.current) return
     if (idxRef.current >= chunksRef.current.length) {
+      utterRef.current = null
       setState('idle')
       return
     }
@@ -171,6 +199,8 @@ export function useNarration() {
       idxRef.current += 1
       speakNext(token)
     }
+    // Retain the utterance so Chrome can't garbage-collect it before onend fires.
+    utterRef.current = utter
     window.speechSynthesis.speak(utter)
   }, [])
 
@@ -178,6 +208,7 @@ export function useNarration() {
     (text: string) => {
       if (!('speechSynthesis' in window)) return
       window.speechSynthesis.cancel()
+      clearSleepTimer()
 
       const chunks = splitIntoChunks(text)
       if (chunks.length === 0) return
@@ -187,8 +218,22 @@ export function useNarration() {
       tokenRef.current += 1
       setState('playing')
       speakNext(tokenRef.current)
+
+      // Arm the sleep timer: stop cleanly and reset to idle once it elapses.
+      const minutes = sleepMinutesRef.current
+      if (minutes > 0) {
+        const token = tokenRef.current
+        sleepTimerRef.current = setTimeout(() => {
+          if (token !== tokenRef.current) return // superseded by a newer play/stop
+          sleepTimerRef.current = null
+          tokenRef.current += 1 // invalidate the queue so onend won't advance it
+          utterRef.current = null
+          window.speechSynthesis.cancel()
+          setState('idle')
+        }, minutes * 60_000)
+      }
     },
-    [speakNext],
+    [speakNext, clearSleepTimer],
   )
 
   const pause = useCallback(() => {
@@ -205,9 +250,20 @@ export function useNarration() {
 
   const stop = useCallback(() => {
     if (!('speechSynthesis' in window)) return
+    clearSleepTimer()
     tokenRef.current += 1 // invalidate the queue so onend won't advance it
+    utterRef.current = null
     window.speechSynthesis.cancel()
     setState('idle')
+  }, [clearSleepTimer])
+
+  const setSleepMinutes = useCallback((m: number) => {
+    setSleepMinutesState(m)
+    try {
+      localStorage.setItem(SLEEP_KEY, String(m))
+    } catch {
+      /* ignore */
+    }
   }, [])
 
   return {
@@ -223,5 +279,8 @@ export function useNarration() {
     setVoiceURI,
     rate,
     setRate,
+    // Sleep timer (minutes; 0 = off).
+    sleepMinutes,
+    setSleepMinutes,
   }
 }
