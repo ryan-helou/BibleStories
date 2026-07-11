@@ -109,8 +109,12 @@ describe('parseGeneratedStory', () => {
     expect(verse).toBeNull()
   })
 
-  it('hides a partially-streamed trailing marker', () => {
-    const { story } = parseGeneratedStory('The end of the tale.\n\n===TAK')
-    expect(story).toBe('The end of the tale.')
+  it('hides a partially-streamed trailing marker at every frame', () => {
+    // Every intermediate frame of "===TAKEAWAYS===" as it streams in, including
+    // the closing "=" runs, must be hidden from the rendered story.
+    for (const frame of ['===T', '===TAK', '===TAKEAWAYS', '===TAKEAWAYS=', '===TAKEAWAYS==']) {
+      const { story } = parseGeneratedStory(`The end of the tale.\n\n${frame}`)
+      expect(story).toBe('The end of the tale.')
+    }
   })
 })
