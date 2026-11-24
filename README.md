@@ -22,4 +22,4 @@ The parent is the one using the site; the kids listen, often while falling aslee
 - Save stories you generated so you can read them again on another night.
 - Pick up where you left off, since the site remembers your last story and age choice on your device.
 
-The library is still small (three stories so far). Nothing requires an account; your progress stays in your own browser.
+Nothing requires an account; your progress stays in your own browser.
