@@ -12,7 +12,7 @@
 
 <br>
 
-The parent is the one using the site; the kids listen, often while falling asleep. The pages use a dark, low-glare theme and large text so they are easy to read in a dim room. There are two ways to use it: read a story from a small built-in library, or ask the site to write a new story for tonight using AI (a computer program that writes text).
+The parent is the one using the site; the kids listen, often while falling asleep. The pages use a dark, low-glare theme and large text so they are easy to read in a dim room. There are two ways to use it: read a story from the built-in library, or ask the site to write a new story for tonight using AI (a computer program that writes text).
 
 ## What you can do with it
 
