@@ -6,6 +6,8 @@
 
 <a href="https://bible-stories-lake.vercel.app"><img alt="Open bible-stories-lake.vercel.app" src="https://img.shields.io/badge/Open-bible--stories--lake.vercel.app-24292f?style=for-the-badge"></a>
 
+<!-- facts --><img alt="For ages: 3 to 12" src="https://img.shields.io/badge/For_ages-3_to_12-24292f?style=for-the-badge"> <img alt="Story length: 1 to 12 minutes" src="https://img.shields.io/badge/Story_length-1_to_12_minutes-24292f?style=for-the-badge"> <img alt="Sign-up: not needed" src="https://img.shields.io/badge/Sign--up-not_needed-24292f?style=for-the-badge">
+
 </div>
 
 <br>
